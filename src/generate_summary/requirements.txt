@@ -1,0 +1,5 @@
+line-bot-sdk
+boto3
+langchain
+bs4
+openai

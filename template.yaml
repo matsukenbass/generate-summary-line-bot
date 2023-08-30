@@ -1,0 +1,122 @@
+AWSTemplateFormatVersion: '2010-09-09'
+Transform: AWS::Serverless-2016-10-31
+Description: |
+  generate-summary-line-bot
+Globals:
+  Function:
+    Timeout: 3
+    MemorySize: 128
+Resources:
+  ApplicationResourceGroup:
+    Type: AWS::ResourceGroups::Group
+    Properties:
+      Name: !Sub ApplicationInsights-SAM-${AWS::StackName}
+      ResourceQuery:
+        Type: CLOUDFORMATION_STACK_1_0
+  ApplicationInsightsMonitoring:
+    Type: AWS::ApplicationInsights::Application
+    Properties:
+      ResourceGroupName: !Ref ApplicationResourceGroup
+      AutoConfigurationEnabled: true
+  SummaryGenerate:
+    Type: AWS::Serverless::Function
+    Properties:
+      Description: !Sub
+        - Stack ${AWS::StackName} Function ${ResourceName}
+        - ResourceName: SummaryGenerate
+      CodeUri: src/generate_summary
+      Handler: handler.lambda_handler
+      Runtime: python3.9
+      MemorySize: 3008
+      Timeout: 30
+      Tracing: Active
+      Events:
+        ServerlessRestApiPOSTsummarygenerate:
+          Type: Api
+          Properties:
+            Path: /summary/generate
+            Method: POST
+      Environment:
+        Variables:
+          SECRET_ARN: arn:aws:secretsmanager:ap-northeast-1:485434730704:secret:generate-summary-line-bot-RLFxmo
+          SUMMARYGENERATETABLE_TABLE_NAME: !Ref SummaryGenerateTable
+          SUMMARYGENERATETABLE_TABLE_ARN: !GetAtt SummaryGenerateTable.Arn
+          SUMMARYBOTMDDOCS_BUCKET_NAME: !Ref SummaryBotMdDocs
+          SUMMARYBOTMDDOCS_BUCKET_ARN: !GetAtt SummaryBotMdDocs.Arn
+      Policies:
+        - DynamoDBCrudPolicy:
+            TableName: !Ref SummaryGenerateTable
+        - Statement:
+            - Effect: Allow
+              Action:
+                - s3:GetObject
+                - s3:GetObjectAcl
+                - s3:GetObjectLegalHold
+                - s3:GetObjectRetention
+                - s3:GetObjectTorrent
+                - s3:GetObjectVersion
+                - s3:GetObjectVersionAcl
+                - s3:GetObjectVersionForReplication
+                - s3:GetObjectVersionTorrent
+                - s3:ListBucket
+                - s3:ListBucketMultipartUploads
+                - s3:ListBucketVersions
+                - s3:ListMultipartUploadParts
+                - s3:AbortMultipartUpload
+                - s3:DeleteObject
+                - s3:DeleteObjectVersion
+                - s3:PutObject
+                - s3:PutObjectLegalHold
+                - s3:PutObjectRetention
+                - s3:RestoreObject
+                - secretsmanager:GetSecretValue
+              Resource:
+                - !Sub arn:${AWS::Partition}:s3:::${SummaryBotMdDocs}
+                - !Sub arn:${AWS::Partition}:s3:::${SummaryBotMdDocs}/*
+                - arn:aws:secretsmanager:ap-northeast-1:485434730704:secret:generate-summary-line-bot-RLFxmo
+  SummaryGenerateLogGroup:
+    Type: AWS::Logs::LogGroup
+    DeletionPolicy: Retain
+    Properties:
+      LogGroupName: !Sub /aws/lambda/${SummaryGenerate}
+  SummaryGenerateTable:
+    Type: AWS::DynamoDB::Table
+    Properties:
+      AttributeDefinitions:
+        - AttributeName: id
+          AttributeType: S
+      BillingMode: PAY_PER_REQUEST
+      KeySchema:
+        - AttributeName: id
+          KeyType: HASH
+      StreamSpecification:
+        StreamViewType: NEW_AND_OLD_IMAGES
+  SummaryBotMdDocs:
+    Type: AWS::S3::Bucket
+    Properties:
+      BucketName: !Sub ${AWS::StackName}-summarybo-${AWS::AccountId}
+      BucketEncryption:
+        ServerSideEncryptionConfiguration:
+          - ServerSideEncryptionByDefault:
+              SSEAlgorithm: aws:kms
+              KMSMasterKeyID: alias/aws/s3
+      PublicAccessBlockConfiguration:
+        IgnorePublicAcls: true
+        RestrictPublicBuckets: true
+  SummaryBotMdDocsBucketPolicy:
+    Type: AWS::S3::BucketPolicy
+    Properties:
+      Bucket: !Ref SummaryBotMdDocs
+      PolicyDocument:
+        Id: RequireEncryptionInTransit
+        Version: '2012-10-17'
+        Statement:
+          - Principal: '*'
+            Action: '*'
+            Effect: Deny
+            Resource:
+              - !GetAtt SummaryBotMdDocs.Arn
+              - !Sub ${SummaryBotMdDocs.Arn}/*
+            Condition:
+              Bool:
+                aws:SecureTransport: 'false'
