@@ -47,7 +47,7 @@ except Exception as e:
     print("Error:", e)
 
 
-# Books テーブルを参照する
+# テーブルを参照する
 table = boto3.resource("dynamodb").Table(table_name)
 
 
@@ -75,16 +75,16 @@ def handle_text_message(event):
 
     if not is_valid_url:
         answer = "不正なURLです。"
+    elif check_url(url):
+        answer = check_url(url)
     else:
         llm = ChatOpenAI(temperature=0, model_name="gpt-3.5-turbo")
         content, title = get_content(url)
         prompt = build_prompt(content)
         messages.append(HumanMessage(content=prompt))
         answer, cost = get_answer(llm, messages)
-
-    put_file_to_s3_bucket(convert_md(answer, url, title), title + ".md")
-
-    put_summary_generate_table(url, answer, cost)
+        put_file_to_s3_bucket(convert_md(answer, url, title), title + ".md")
+        put_summary_generate_table(url, answer, cost)
 
     line_bot_api.reply_message(event.reply_token, TextSendMessage(text=answer))
 
@@ -133,6 +133,14 @@ def put_summary_generate_table(url, answer, cost):
     table.put_item(
         Item={"id": str(uuid.uuid4()), "url": url, "answer": answer, "cost": str(cost)}
     )
+
+
+## テーブルに同じURLが存在していたらtrueとanswerを返す関数
+def check_url(url):
+    response = table.get_item(Key={"url": url})
+    if "Item" in response:
+        return response["Item"]["answer"]
+    return False
 
 
 ### 日本語の文章を句点で改行する関数
