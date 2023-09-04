@@ -1,11 +1,7 @@
 import json
 from langchain.chat_models import ChatOpenAI
-from langchain.schema import SystemMessage, HumanMessage, AIMessage
+from langchain.schema import HumanMessage
 from langchain.callbacks import get_openai_callback
-
-from langchain.prompts import (
-    HumanMessagePromptTemplate,
-)
 
 import requests
 from bs4 import BeautifulSoup
@@ -102,15 +98,22 @@ def get_content(url):
 
 
 def build_prompt(content, n_chars=300):
-    return f"""以下はとある。Webページのコンテンツである。内容を{n_chars}程度でわかりやすく要約してください。また要約の次に紹介されているWebページのURLも箇条書きで記載してください。
+    return f"""あなたはプロのエンジニアである。
+    また、以下はとあるWebページのコンテンツである。内容を{n_chars}から{n_chars+1000}程度でわかりやすく要約してください。
 
 ========
 
-{content[:3000]}
+{content[:4000]}
 
 ========
 
-日本語で書いてください。
+    また要約を作成する際は、以下の制約条件を守ってください。
+
+    # 制約条件：
+    ・重要なキーワードを取り残さないこと
+    ・要約の冒頭で、Webページ内で使用されている技術やサービスの名前を箇条書きで記載すること
+    ・要約の末尾に紹介されているWebページのURLも箇条書きで記載すること
+    ・日本語で書くこと
 """
 
 
