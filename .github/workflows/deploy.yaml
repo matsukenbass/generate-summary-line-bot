@@ -1,0 +1,38 @@
+name: deploy-aws
+ 
+on:
+  push:
+    branches:
+      - 'main'
+  workflow_dispatch:
+ 
+env: 
+  TEMPLATE_FILE: template.yaml
+
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+    permissions: 
+      id-token: write
+      contents: read
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v3
+      - name: Setup python
+        uses: actions/setup-python@v3
+        with:
+          python-version: '3.9'
+      - name: Setup aws-sam
+        uses: aws-actions/setup-sam@v2
+      - name: Configure AWS credentials
+        uses: aws-actions/configure-aws-credentials@v1-node16
+        with:
+          aws-region: ${{secrets.AWS_REGION}}
+          role-to-assume: ${{secrets.IAM_ROLE_ARN}}
+
+      - run: aws sts get-caller-identity
+
+      - name: Build & Deploy Cloudformation stacks
+        run: |
+          sam build --template-file ${TEMPLATE_FILE}
+          sam deploy --template-file ${TEMPLATE_FILE}
