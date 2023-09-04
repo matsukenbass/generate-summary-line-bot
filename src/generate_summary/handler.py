@@ -85,6 +85,7 @@ def handle_text_message(event):
     line_bot_api.reply_message(event.reply_token, TextSendMessage(text=answer))
 
 
+# Webページの内容を取得
 def get_content(url):
     response = requests.get(url)
     soup = BeautifulSoup(response.text, "html.parser")
@@ -97,6 +98,7 @@ def get_content(url):
         return soup.body.get_text(), soup.title.string
 
 
+# プロンプト作成
 def build_prompt(content, n_chars=300):
     return f"""あなたはプロのエンジニアである。
     また、以下はとあるWebページのコンテンツである。内容を{n_chars}から{n_chars+1000}程度でわかりやすく要約してください。
@@ -117,12 +119,14 @@ def build_prompt(content, n_chars=300):
 """
 
 
+# 要約結果取得
 def get_answer(llm, messages):
     with get_openai_callback() as cb:
         answer = llm(messages)
     return answer.content, cb.total_cost
 
 
+# 有効なURLかチェック
 def validate_url(url):
     try:
         result = urlparse(url)
@@ -131,6 +135,7 @@ def validate_url(url):
         return False
 
 
+# DynamoDBのテーブルに結果を挿入
 def put_summary_generate_table(url, answer, cost):
     # テーブルにアイテムを追加する
     table.put_item(
@@ -151,6 +156,7 @@ def split_sentences(text):
     return text.replace("。", "。\n")
 
 
+# Obsidianでの保存形式に合わせて結果を整形
 def convert_md(summary: str, url: str, title: str):
     return f"""
 ---
@@ -170,6 +176,7 @@ tags: 💻
 """
 
 
+# mdファイルをS3保存
 def put_file_to_s3_bucket(file_content, file_name, bucket_name=bucket_name):
     s3 = boto3.resource("s3")
     s3.Bucket(bucket_name).put_object(Key=file_name, Body=file_content)
