@@ -147,6 +147,7 @@ def put_summary_generate_table(url, answer, cost):
 def check_url(url):
     response = table.get_item(Key={"url": url})
     if "Item" in response:
+        print("already exist")
         return response["Item"]["answer"]
     return False
 
