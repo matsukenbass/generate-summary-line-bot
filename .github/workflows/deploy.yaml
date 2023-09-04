@@ -34,5 +34,5 @@ jobs:
 
       - name: Build & Deploy Cloudformation stacks
         run: |
-          sam build --template-file ${TEMPLATE_FILE}
-          sam deploy --template-file ${TEMPLATE_FILE}
+          sam build
+          sam deploy
