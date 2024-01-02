@@ -29,6 +29,7 @@ jobs:
         with:
           aws-region: ${{secrets.AWS_REGION}}
           role-to-assume: ${{secrets.IAM_ROLE_ARN}}
+          SecretArn: ${{secrets.SECRET_ARN}}
 
       - run: aws sts get-caller-identity
 

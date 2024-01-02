@@ -2,6 +2,11 @@ AWSTemplateFormatVersion: '2010-09-09'
 Transform: AWS::Serverless-2016-10-31
 Description: |
   generate-summary-line-bot
+Parameters:
+  SecretArn:
+    Type: String
+    Description: ARN of Secret Manager
+    NoEcho: true
 Globals:
   Function:
     Timeout: 3
@@ -38,7 +43,7 @@ Resources:
             Method: POST
       Environment:
         Variables:
-          SECRET_ARN: arn:aws:secretsmanager:ap-northeast-1:485434730704:secret:generate-summary-line-bot-RLFxmo
+          SECRET_ARN: !Ref SecretArn
           SUMMARYGENERATETABLE_TABLE_NAME: !Ref SummaryGenerateTable
           SUMMARYGENERATETABLE_TABLE_ARN: !GetAtt SummaryGenerateTable.Arn
           SUMMARYBOTMDDOCS_BUCKET_NAME: !Ref SummaryBotMdDocs
@@ -73,7 +78,7 @@ Resources:
               Resource:
                 - !Sub arn:${AWS::Partition}:s3:::${SummaryBotMdDocs}
                 - !Sub arn:${AWS::Partition}:s3:::${SummaryBotMdDocs}/*
-                - arn:aws:secretsmanager:ap-northeast-1:485434730704:secret:generate-summary-line-bot-RLFxmo
+                - !Ref SecretArn
   SummaryGenerateLogGroup:
     Type: AWS::Logs::LogGroup
     DeletionPolicy: Retain
