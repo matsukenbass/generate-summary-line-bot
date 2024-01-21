@@ -36,3 +36,9 @@ jobs:
         run: |
           sam build
           sam deploy --parameter-overrides ParameterKey=SecretArn,ParameterValue=${{secrets.SECRET_ARN}}
+
+
+concurrency:
+  group: ${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+          
