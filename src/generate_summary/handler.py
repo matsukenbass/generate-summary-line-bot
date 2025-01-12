@@ -100,7 +100,7 @@ def get_content(url):
 
 # プロンプト作成
 def build_prompt(content, n_chars=1000):
-    return f"""あなたはプロのエンジニアである。
+    return f"""あなたはプロのシステムエンジニアである。
     また、以下はとあるWebページのコンテンツである。内容を{n_chars}から{n_chars}程度でわかりやすく要約してください。
 
 ========
