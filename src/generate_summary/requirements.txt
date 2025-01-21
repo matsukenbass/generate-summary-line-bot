@@ -3,3 +3,5 @@ boto3
 langchain
 bs4
 openai
+langchain-community
+langchain-core
