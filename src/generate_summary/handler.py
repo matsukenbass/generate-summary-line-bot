@@ -246,15 +246,5 @@ def get_youtube_transcript(video_url):
     documents = loader.load()
     content = documents[0].page_content  # 文字起こし出力
     print(content)
-    # ytt_api = YouTubeTranscriptApi(
-    #     proxy_config=WebshareProxyConfig(
-    #         proxy_username=secret_data["WEBSHARE_PROXY_NAME"],
-    #         proxy_password=secret_data["WEBSHARE_PROXY_PASSWORD"],
-    #     )
-    # )
-    # transcript_list = ytt_api.list(video_id)
-    # print(transcript_list)
-    # transcript = transcript_list.find_manually_created_transcript(["ja", "en"])
-    # actual_transcript_data = transcript.fetch()
 
-    return content, video_id
+    return content, video_url
