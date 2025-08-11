@@ -78,7 +78,6 @@ def handle_text_message(event):
         elif check_url(url):
             answer = check_url(url)
         else:
-            llm = ChatOpenAI(temperature=1, model_name="gpt-5")
             if is_youtube_url(url):
                 content, title = get_content(url)
                 prompt = build_youtube_prompt(content)
@@ -86,6 +85,8 @@ def handle_text_message(event):
                 content, title = get_content(url)
                 prompt = build_prompt(content)
             messages.append(HumanMessage(content=prompt))
+
+            llm = ChatOpenAI(temperature=1, model_name="gpt-5")
             answer, cost = get_answer(llm, messages)
             put_file_to_s3_bucket(convert_md(answer, url, title), title + ".md")
             put_summary_generate_table(url, answer, cost)
