@@ -236,8 +236,13 @@ def get_youtube_video_id(url):
 
 
 def get_youtube_transcript(video_id):
-    transcript_list = YouTubeTranscriptApi.get_transcript(
-        video_id, languages=["ja", "en"]
-    )
-    transcript = "".join([d["text"] for d in transcript_list])
-    return transcript, video_id
+    ytt_api = YouTubeTranscriptApi()
+    transcript_list = ytt_api.list(video_id)
+    transcript = transcript_list.find_manually_created_transcript(["ja", "en"])
+    actual_transcript_data = transcript.fetch()
+
+    # transcript_list = YouTubeTranscriptApi.get_transcript(
+    #     video_id, languages=["ja", "en"]
+    # )
+    # transcript = "".join([d["text"] for d in transcript_list])
+    return actual_transcript_data, video_id
