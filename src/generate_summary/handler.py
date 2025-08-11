@@ -74,7 +74,7 @@ def handle_text_message(event):
     elif check_url(url):
         answer = check_url(url)
     else:
-        llm = ChatOpenAI(temperature=0, model_name="gpt-5")
+        llm = ChatOpenAI(temperature=1, model_name="gpt-5")
         content, title = get_content(url)
         prompt = build_prompt(content)
         messages.append(HumanMessage(content=prompt))
