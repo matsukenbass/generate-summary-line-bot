@@ -5,7 +5,7 @@ from langchain.callbacks import get_openai_callback
 
 import requests
 from bs4 import BeautifulSoup
-from urllib.parse import urlparse
+from urllib.parse import urlparse, parse_qs
 
 import boto3
 
@@ -20,6 +20,9 @@ from linebot.models import (
 )
 
 import uuid
+
+from youtube_transcript_api import YouTubeTranscriptApi
+
 
 
 try:
@@ -74,7 +77,7 @@ def handle_text_message(event):
     elif check_url(url):
         answer = check_url(url)
     else:
-        llm = ChatOpenAI(temperature=1, model_name="gpt-5")
+        llm = ChatOpenAI(temperature=1, model_name="gpt-4")
         content, title = get_content(url)
         prompt = build_prompt(content)
         messages.append(HumanMessage(content=prompt))
@@ -87,6 +90,10 @@ def handle_text_message(event):
 
 # Webページの内容を取得
 def get_content(url):
+    if is_youtube_url(url):
+        video_id = get_youtube_video_id(url)
+        return get_youtube_transcript(video_id)
+
     response = requests.get(url)
     soup = BeautifulSoup(response.text, "html.parser")
     # fetch text from main (change the below code to filter page)
@@ -183,3 +190,22 @@ def put_file_to_s3_bucket(file_content, file_name, bucket_name=bucket_name):
     s3.Bucket(bucket_name).put_object(Key=file_name, Body=file_content)
     if os.path.isfile(file_content):
         os.remove(file_content)
+
+
+def is_youtube_url(url):
+    return "youtube.com" in url or "youtu.be" in url
+
+
+def get_youtube_video_id(url):
+    parsed_url = urlparse(url)
+    if "youtu.be" in parsed_url.netloc:
+        return parsed_url.path[1:]
+    if "youtube.com" in parsed_url.netloc:
+        return parse_qs(parsed_url.query)["v"][0]
+    return None
+
+
+def get_youtube_transcript(video_id):
+    transcript_list = YouTubeTranscriptApi.get_transcript(video_id, languages=["ja", "en"])
+    transcript = "".join([d["text"] for d in transcript_list])
+    return transcript, video_id
