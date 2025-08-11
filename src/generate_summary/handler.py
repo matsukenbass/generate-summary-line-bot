@@ -66,29 +66,36 @@ def lambda_handler(event, context):
 def handle_text_message(event):
     """TextMessage handler"""
 
-    messages = []
+    try:
+        messages = []
 
-    url = event.message.text
-    is_valid_url = validate_url(url)
+        url = event.message.text
+        is_valid_url = validate_url(url)
 
-    if not is_valid_url:
-        answer = "不正なURLです。"
-    elif check_url(url):
-        answer = check_url(url)
-    else:
-        llm = ChatOpenAI(temperature=1, model_name="gpt-4")
-        if is_youtube_url(url):
-            content, title = get_content(url)
-            prompt = build_youtube_prompt(content)
+        if not is_valid_url:
+            answer = "不正なURLです。"
+        elif check_url(url):
+            answer = check_url(url)
         else:
-            content, title = get_content(url)
-            prompt = build_prompt(content)
-        messages.append(HumanMessage(content=prompt))
-        answer, cost = get_answer(llm, messages)
-        put_file_to_s3_bucket(convert_md(answer, url, title), title + ".md")
-        put_summary_generate_table(url, answer, cost)
+            llm = ChatOpenAI(temperature=1, model_name="gpt-4")
+            if is_youtube_url(url):
+                content, title = get_content(url)
+                prompt = build_youtube_prompt(content)
+            else:
+                content, title = get_content(url)
+                prompt = build_prompt(content)
+            messages.append(HumanMessage(content=prompt))
+            answer, cost = get_answer(llm, messages)
+            put_file_to_s3_bucket(convert_md(answer, url, title), title + ".md")
+            put_summary_generate_table(url, answer, cost)
 
-    line_bot_api.reply_message(event.reply_token, TextSendMessage(text=answer))
+        line_bot_api.reply_message(event.reply_token, TextSendMessage(text=answer))
+
+    except Exception as e:
+        print(e)
+        line_bot_api.reply_message(
+            event.reply_token, TextSendMessage(text="エラーが発生しました。\n" + str(e))
+        )
 
 
 # Webページの内容を取得
