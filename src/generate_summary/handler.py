@@ -21,7 +21,8 @@ from linebot.models import (
 
 import uuid
 
-from langchain_community.document_loaders import YoutubeLoader
+from youtube_transcript_api import YouTubeTranscriptApi
+from youtube_transcript_api.proxies import WebshareProxyConfig
 
 
 try:
@@ -102,8 +103,8 @@ def handle_text_message(event):
 # Webページの内容を取得
 def get_content(url):
     if is_youtube_url(url):
-        # video_id = get_youtube_video_id(url)
-        return get_youtube_transcript(url)
+        video_id = get_youtube_video_id(url)
+        return get_youtube_transcript(video_id)
 
     response = requests.get(url)
     soup = BeautifulSoup(response.text, "html.parser")
@@ -227,15 +228,29 @@ def is_youtube_url(url):
     return "youtube.com" in url or "youtu.be" in url
 
 
-def get_youtube_transcript(video_url):
-    loader = YoutubeLoader.from_youtube_url(
-        video_url,  # 取得したいYouTube URL
-        add_video_info=False,  # 動画情報を取得する場合はTrue
-        language=["ja"],  # 取得する字幕の言語指定(複数指定は取得の優先順位づけ)
-        translation="en",  # 字幕を自動翻訳したい場合の言語指定
-    )
-    documents = loader.load()
-    content = documents[0].page_content  # 文字起こし出力
-    print(content)
+def get_youtube_video_id(url):
+    parsed_url = urlparse(url)
+    if "youtu.be" in parsed_url.netloc:
+        return parsed_url.path[1:]
+    if "youtube.com" in parsed_url.netloc:
+        return parse_qs(parsed_url.query)["v"][0]
+    return None
 
-    return content, video_url
+
+def get_youtube_transcript(video_id):
+    ytt_api = YouTubeTranscriptApi(
+        proxy_config=WebshareProxyConfig(
+            proxy_username=secret_data["WEBSHARE_PROXY_NAME"],
+            proxy_password=secret_data["WEBSHARE_PROXY_PASSWORD"],
+        )
+    )
+    transcript_list = ytt_api.list(video_id)
+    print(transcript_list)
+    transcript = transcript_list.find_manually_created_transcript(["ja", "en"])
+    actual_transcript_data = transcript.fetch()
+
+    # transcript_list = YouTubeTranscriptApi.get_transcript(
+    #     video_id, languages=["ja", "en"]
+    # )
+    # transcript = "".join([d["text"] for d in transcript_list])
+    return actual_transcript_data, video_id
