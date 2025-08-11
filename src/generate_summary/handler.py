@@ -199,7 +199,7 @@ def split_sentences(text):
 def convert_md(summary: str, url: str, title: str):
     return f"""
 ---
-tags: 💻 
+tags: 💻
 ---
 #💻 #要約
 
@@ -225,15 +225,6 @@ def put_file_to_s3_bucket(file_content, file_name, bucket_name=bucket_name):
 
 def is_youtube_url(url):
     return "youtube.com" in url or "youtu.be" in url
-
-
-def get_youtube_video_id(url):
-    parsed_url = urlparse(url)
-    if "youtu.be" in parsed_url.netloc:
-        return parsed_url.path[1:]
-    if "youtube.com" in parsed_url.netloc:
-        return parse_qs(parsed_url.query)["v"][0]
-    return None
 
 
 def get_youtube_transcript(video_url):
