@@ -193,7 +193,7 @@ def convert_md(summary: str, url: str, title: str):
 ---
 tags: 💻 
 ---
-#💻 
+#💻 #要約
 
 ### リンク
 [{title}]({url})
