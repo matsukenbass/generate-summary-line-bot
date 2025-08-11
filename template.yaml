@@ -31,7 +31,7 @@ Resources:
         - ResourceName: SummaryGenerate
       CodeUri: src/generate_summary
       Handler: handler.lambda_handler
-      Runtime: python3.9
+      Runtime: python3.10
       MemorySize: 3008
       Timeout: 30
       Tracing: Active
