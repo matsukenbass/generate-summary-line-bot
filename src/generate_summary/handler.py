@@ -22,6 +22,7 @@ from linebot.models import (
 import uuid
 
 from youtube_transcript_api import YouTubeTranscriptApi
+from youtube_transcript_api.proxies import WebshareProxyConfig
 
 
 try:
@@ -77,7 +78,7 @@ def handle_text_message(event):
         elif check_url(url):
             answer = check_url(url)
         else:
-            llm = ChatOpenAI(temperature=1, model_name="gpt-4")
+            llm = ChatOpenAI(temperature=1, model_name="gpt-5")
             if is_youtube_url(url):
                 content, title = get_content(url)
                 prompt = build_youtube_prompt(content)
@@ -236,7 +237,12 @@ def get_youtube_video_id(url):
 
 
 def get_youtube_transcript(video_id):
-    ytt_api = YouTubeTranscriptApi()
+    ytt_api = YouTubeTranscriptApi(
+        proxy_config=WebshareProxyConfig(
+            proxy_username=secret_data["WEBSHARE_PROXY_NAME"],
+            proxy_password=secret_data["WEBSHARE_PROXY_PASSWORD"],
+        )
+    )
     transcript_list = ytt_api.list(video_id)
     transcript = transcript_list.find_manually_created_transcript(["ja", "en"])
     actual_transcript_data = transcript.fetch()
