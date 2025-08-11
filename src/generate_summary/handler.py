@@ -21,8 +21,7 @@ from linebot.models import (
 
 import uuid
 
-from youtube_transcript_api import YouTubeTranscriptApi
-from youtube_transcript_api.proxies import WebshareProxyConfig
+from langchain_community.document_loaders import YoutubeLoader
 
 
 try:
@@ -237,19 +236,25 @@ def get_youtube_video_id(url):
     return None
 
 
-def get_youtube_transcript(video_id):
-    ytt_api = YouTubeTranscriptApi(
-        proxy_config=WebshareProxyConfig(
-            proxy_username=secret_data["WEBSHARE_PROXY_NAME"],
-            proxy_password=secret_data["WEBSHARE_PROXY_PASSWORD"],
-        )
+def get_youtube_transcript(video_url):
+    loader = YoutubeLoader.from_youtube_url(
+        video_url,  # 取得したいYouTube URL
+        add_video_info=False,  # 動画情報を取得する場合はTrue
+        language=["ja"],  # 取得する字幕の言語指定(複数指定は取得の優先順位づけ)
+        translation="en",  # 字幕を自動翻訳したい場合の言語指定
     )
-    transcript_list = ytt_api.list(video_id)
-    transcript = transcript_list.find_manually_created_transcript(["ja", "en"])
-    actual_transcript_data = transcript.fetch()
-
-    # transcript_list = YouTubeTranscriptApi.get_transcript(
-    #     video_id, languages=["ja", "en"]
+    documents = loader.load()
+    content = documents[0].page_content  # 文字起こし出力
+    print(content)
+    # ytt_api = YouTubeTranscriptApi(
+    #     proxy_config=WebshareProxyConfig(
+    #         proxy_username=secret_data["WEBSHARE_PROXY_NAME"],
+    #         proxy_password=secret_data["WEBSHARE_PROXY_PASSWORD"],
+    #     )
     # )
-    # transcript = "".join([d["text"] for d in transcript_list])
-    return actual_transcript_data, video_id
+    # transcript_list = ytt_api.list(video_id)
+    # print(transcript_list)
+    # transcript = transcript_list.find_manually_created_transcript(["ja", "en"])
+    # actual_transcript_data = transcript.fetch()
+
+    return content, video_id
