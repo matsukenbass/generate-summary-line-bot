@@ -24,7 +24,6 @@ import uuid
 from youtube_transcript_api import YouTubeTranscriptApi
 
 
-
 try:
     secrets_manager = boto3.client("secretsmanager")
 
@@ -77,7 +76,7 @@ def handle_text_message(event):
     elif check_url(url):
         answer = check_url(url)
     else:
-        llm = ChatOpenAI(temperature=1, model_name="gpt-4")
+        llm = ChatOpenAI(temperature=1, model_name="gpt-5")
         content, title = get_content(url)
         prompt = build_prompt(content)
         messages.append(HumanMessage(content=prompt))
@@ -206,6 +205,8 @@ def get_youtube_video_id(url):
 
 
 def get_youtube_transcript(video_id):
-    transcript_list = YouTubeTranscriptApi.get_transcript(video_id, languages=["ja", "en"])
+    transcript_list = YouTubeTranscriptApi.get_transcript(
+        video_id, languages=["ja", "en"]
+    )
     transcript = "".join([d["text"] for d in transcript_list])
     return transcript, video_id
