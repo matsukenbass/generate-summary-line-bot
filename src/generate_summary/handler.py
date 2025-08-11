@@ -76,9 +76,13 @@ def handle_text_message(event):
     elif check_url(url):
         answer = check_url(url)
     else:
-        llm = ChatOpenAI(temperature=1, model_name="gpt-5")
-        content, title = get_content(url)
-        prompt = build_prompt(content)
+        llm = ChatOpenAI(temperature=1, model_name="gpt-4")
+        if is_youtube_url(url):
+            content, title = get_content(url)
+            prompt = build_youtube_prompt(content)
+        else:
+            content, title = get_content(url)
+            prompt = build_prompt(content)
         messages.append(HumanMessage(content=prompt))
         answer, cost = get_answer(llm, messages)
         put_file_to_s3_bucket(convert_md(answer, url, title), title + ".md")
@@ -122,6 +126,26 @@ def build_prompt(content, n_chars=1000):
     ・要約の冒頭で、当該のページで触れられている技術やサービスの名前を箇条書きで記載すること
     ・日本語で書くこと
     ・必要ならば図やチャートを用いて要約を補足すること
+"""
+
+
+def build_youtube_prompt(transcript, n_chars=1000):
+    return f"""あなたはプロの動画コンテンツキュレーターである。
+    以下はとあるYouTubeの動画の文字起こしである。内容を{n_chars}から{n_chars}程度でわかりやすく要約してください。
+
+========
+
+{transcript[:4000]}
+
+========
+
+    また要約を作成する際は、以下の制約条件を守ってください。
+
+    # 制約条件：
+    ・重要なキーワードを取り残さないこと
+    ・要約の冒頭で、動画のトピックを箇条書きで記載すること
+    ・日本語で書くこと
+    ・タイムスタンプを含めるなどして、動画の内容と要約を関連付けること
 """
 
 
