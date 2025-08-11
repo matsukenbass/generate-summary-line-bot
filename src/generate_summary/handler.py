@@ -102,8 +102,8 @@ def handle_text_message(event):
 # Webページの内容を取得
 def get_content(url):
     if is_youtube_url(url):
-        video_id = get_youtube_video_id(url)
-        return get_youtube_transcript(video_id)
+        # video_id = get_youtube_video_id(url)
+        return get_youtube_transcript(url)
 
     response = requests.get(url)
     soup = BeautifulSoup(response.text, "html.parser")
