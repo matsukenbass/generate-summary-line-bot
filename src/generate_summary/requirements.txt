@@ -5,4 +5,5 @@ bs4
 openai
 langchain-community
 langchain-core
+langchain-openai
 youtube-transcript-api

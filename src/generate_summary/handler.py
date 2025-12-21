@@ -1,7 +1,6 @@
 import json
-from langchain_community.chat_models import ChatOpenAI
+from langchain_openai import ChatOpenAI
 
-# from langchain.schema import HumanMessage
 from langchain_community.callbacks import get_openai_callback
 from langchain_core.messages import HumanMessage
 
