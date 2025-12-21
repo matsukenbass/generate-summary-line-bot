@@ -124,7 +124,7 @@ def build_prompt(content, n_chars=1000):
 
 ========
 
-{content[:10000]}
+{content[:4000]}
 
 ========
 
