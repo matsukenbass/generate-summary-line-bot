@@ -126,7 +126,7 @@ def build_prompt(content, n_chars=1000):
 
 ========
 
-{content[:4000]}
+{content[:10000]}
 
 ========
 
@@ -163,7 +163,7 @@ def build_youtube_prompt(transcript, n_chars=1000):
 # 要約結果取得
 def get_answer(llm, messages):
     with get_openai_callback() as cb:
-        answer = llm(messages)
+        answer = llm.invoke(messages)
     return answer.content, cb.total_cost
 
 

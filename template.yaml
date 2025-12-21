@@ -79,6 +79,8 @@ Resources:
                 - !Sub arn:${AWS::Partition}:s3:::${SummaryBotMdDocs}
                 - !Sub arn:${AWS::Partition}:s3:::${SummaryBotMdDocs}/*
                 - !Ref SecretArn
+      Layers:
+        - !Ref SummaryGenerateLayer
   SummaryGenerateLogGroup:
     Type: AWS::Logs::LogGroup
     DeletionPolicy: Retain
@@ -125,3 +127,13 @@ Resources:
             Condition:
               Bool:
                 aws:SecureTransport: 'false'
+  SummaryGenerateLayer:
+    Type: AWS::Serverless::LayerVersion
+    Properties:
+      Description: !Sub
+        - Stack ${AWS::StackName} Layer ${ResourceName}
+        - ResourceName: SummaryGenerateLayer
+      ContentUri: src/Layer
+      RetentionPolicy: Retain
+    Metadata:
+      BuildMethod: python3.10
