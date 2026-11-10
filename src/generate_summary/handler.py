@@ -92,7 +92,7 @@ def handle_text_message(event):
                 prompt = build_prompt(content)
             messages.append(HumanMessage(content=prompt))
 
-            llm = ChatOpenAI(temperature=1, model_name="gpt-5")
+            llm = ChatOpenAI(model_name="gpt-6.1-terra")
             answer, cost = get_answer(llm, messages)
             put_file_to_s3_bucket(convert_md(answer, url, title), title + ".md")
             put_summary_generate_table(url, answer, cost)
