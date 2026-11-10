@@ -16,6 +16,14 @@ logger = logging.getLogger(__name__)
 def lambda_handler(event, context):
     try:
         from handler import lambda_handler as handle_request
+    except ModuleNotFoundError as exc:
+        # Module names are useful for diagnosing missing dependencies; do not log
+        # the exception message, which may include sensitive paths or data.
+        name = exc.name or "unknown"
+        if not all(part.isidentifier() for part in name.split(".")):
+            name = "unknown"
+        logger.error("Application startup failed (missing module: %s)", name)
+        return reply_to_startup_failure(event)
     except Exception as exc:
         # Do not include exception text: it may contain secrets.
         logger.error("Application startup failed (%s)", type(exc).__name__)
