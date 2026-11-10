@@ -1,5 +1,22 @@
 # generate-summary-line-bot
 
+## OpenAI API の認証エラー
+
+`401 invalid_api_key` が発生した場合は、OpenAI の API キーが有効で、
+このアプリが使うキーと一致しているか確認してください。キーはチャットやログに貼り付けないでください。
+
+1. Lambda 関数 `SummaryGenerate` の環境変数 `SECRET_ARN` が指す AWS Secrets Manager のシークレットを開きます。
+2. シークレットの JSON の `OPENAI_API_KEY` を有効な OpenAI API キーに更新します。他の項目は保持してください。
+3. キーは Lambda の実行環境の初期化時に読み込まれるため、更新後に関数の実行環境を入れ替えます。例えば、以下のコマンドでビルド済みテンプレートを明示して再デプロイしてください。
+4. LINE から未要約の URL を送って動作を確認します。保存済み URL はキャッシュが返るため、API キーの確認には使えません。
+
+エラー画面にはキーの一部が表示される場合があります。キーが共有された可能性がある場合は、OpenAI 側でキーをローテーションしてください。
+
+```bash
+sam build
+sam deploy --template-file .aws-sam/build/template.yaml --config-file "$PWD/samconfig.toml"
+```
+
 This project contains source code and supporting files for a serverless application that you can deploy with the SAM CLI. It includes the following files and folders.
 
 - hello_world - Code for the application's Lambda function.

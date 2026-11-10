@@ -30,7 +30,7 @@ Resources:
         - Stack ${AWS::StackName} Function ${ResourceName}
         - ResourceName: SummaryGenerate
       CodeUri: src/generate_summary
-      Handler: handler.lambda_handler
+      Handler: entrypoint.lambda_handler
       Runtime: python3.10
       MemorySize: 3008
       Timeout: 300
