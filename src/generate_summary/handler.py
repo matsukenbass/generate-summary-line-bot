@@ -1,4 +1,6 @@
 import json
+import logging
+from openai import AuthenticationError
 from langchain_openai import ChatOpenAI
 
 from langchain_community.callbacks import get_openai_callback
@@ -25,6 +27,8 @@ import uuid
 
 from youtube_transcript_api import YouTubeTranscriptApi
 from youtube_transcript_api.proxies import WebshareProxyConfig
+
+logger = logging.getLogger(__name__)
 
 
 try:
@@ -95,10 +99,17 @@ def handle_text_message(event):
 
         line_bot_api.reply_message(event.reply_token, TextSendMessage(text=answer))
 
-    except Exception as e:
-        print(e)
+    except AuthenticationError:
+        logger.error("OpenAI authentication failed; check the configured API key")
         line_bot_api.reply_message(
-            event.reply_token, TextSendMessage(text="エラーが発生しました。\n" + str(e))
+            event.reply_token,
+            TextSendMessage(text="要約サービスの認証に失敗しました。管理者にお問い合わせください。"),
+        )
+    except Exception as e:
+        # Exception messages can contain credentials or other sensitive information.
+        logger.error("Summary generation failed (%s)", type(e).__name__)
+        line_bot_api.reply_message(
+            event.reply_token, TextSendMessage(text="エラーが発生しました。時間をおいて再度お試しください。")
         )
 
 
